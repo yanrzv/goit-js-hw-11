@@ -14,6 +14,11 @@ const searchBtn = document.querySelector('.search-form button');
 const gallery = document.querySelector('.gallery');
 
 searchBtn.disabled = true;
+Notify.init({
+    position: 'center-top',
+    distance: '100px',
+    showOnlyTheLastOne: true,
+})
 
 form.addEventListener('input', throttle(onInput, 250));
 
@@ -22,10 +27,11 @@ window.addEventListener('scroll', throttle(checkPosition, 250));
 window.addEventListener('resize', throttle(checkPosition, 250));
 
 
-function onFormSubmit (event) {
-    event.preventDefault();
+async function onFormSubmit (event) {
+    await event.preventDefault();
     gallery.innerHTML = '';
-    getResultObject(input.value);
+    await getResultObject(input.value, 1);
+    // console.log(this.data.hits.length);
 
 }
 
@@ -36,6 +42,11 @@ function onInput() {
         searchBtn.disabled = false;
     }   
 }
+
+function makeGalleryMarkup() {
+
+}
+
 
 async function getResultObject(searchQuery, pageNumber) {
     try {
@@ -65,7 +76,7 @@ async function getResultObject(searchQuery, pageNumber) {
   </div>
 </div>`).join('');
         
-    if (response.data.hits.length === 0) {
+    if (response.data.totalHits === 0) {
         gallery.innerHTML = '';
         notifyQueryError();
     } else {
@@ -79,10 +90,7 @@ async function getResultObject(searchQuery, pageNumber) {
 
 
 function notifyQueryError() {
-    Notify.init({
-    position: 'center-top',
-    distance: '100px'
-    })
+    
     Notify.failure('Sorry, there are no images matching your search query. Please try again.');
 }
 
@@ -92,12 +100,12 @@ async function checkPosition() {
     const height = document.body.offsetHeight;
     const screenHeight = window.innerHeight;
     const scrolled = window.scrollY;
-    const threshold = height - screenHeight / 4;
+    const threshold = height - screenHeight;
     const position = scrolled + screenHeight;
 
     if (position >= threshold) {
       pageNumber += 1;
       await getResultObject(input.value, pageNumber)
-    }
+    } 
 }
 
